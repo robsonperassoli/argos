@@ -15,19 +15,22 @@
  */
 package br.com.ezequieljuliano.argos.statistics;
 
+import br.com.ezequieljuliano.argos.util.Data;
+import java.util.Date;
 import java.util.Objects;
 
 /**
  *
  * @author Ezequiel Juliano Müller
  */
-public class EventoEvolucaoObjSTS {
+public class EventoEvolucaoObjSTS implements Comparable<EventoEvolucaoObjSTS>{
 
-    private String data;
-    private Integer quantidade = 1;
+    private final String data;
+    private final Integer quantidade;
 
-    public EventoEvolucaoObjSTS(String data) {
+    public EventoEvolucaoObjSTS(String data, Integer quantidade) {
         this.data = data;
+        this.quantidade = quantidade;
     }
 
     public String getData() {
@@ -36,10 +39,6 @@ public class EventoEvolucaoObjSTS {
 
     public Integer getQuantidade() {
         return quantidade;
-    }
-
-    public void incrementar() {
-        this.quantidade++;
     }
 
     @Override
@@ -62,5 +61,12 @@ public class EventoEvolucaoObjSTS {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public int compareTo(EventoEvolucaoObjSTS o) {
+        Date thisDate = Data.stringToDate(this.data);
+        Date otherDate = Data.stringToDate(o.data);
+        return thisDate.compareTo(otherDate);
     }
 }

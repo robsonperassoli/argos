@@ -21,6 +21,9 @@ import br.com.ezequieljuliano.argos.domain.EventoPesquisaFiltro;
 import br.com.ezequieljuliano.argos.domain.Usuario;
 import br.com.ezequieljuliano.argos.domain.UsuarioEvento;
 import br.com.ezequieljuliano.argos.persistence.EventoDAO;
+import br.com.ezequieljuliano.argos.statistics.EventoEvolucaoObjSTS;
+import br.com.ezequieljuliano.argos.statistics.EventoHostObjSTS;
+import br.com.ezequieljuliano.argos.statistics.EventoTipoObjSTS;
 import br.com.ezequieljuliano.argos.util.Data;
 import br.com.ezequieljuliano.argos.util.EmailSender;
 import br.com.ezequieljuliano.argos.util.VelocityTemplate;
@@ -115,5 +118,17 @@ public class EventoBC extends GenericBC<Evento, String, EventoDAO> {
                 Logger.getLogger(EventoBC.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
+    }
+
+    public List<EventoHostObjSTS> findHostsSts(Usuario usuario, Date dataIni, Date dataFim) {
+        return getDAO().findHostsSts(usuario, dataIni, dataFim);
+    }
+
+    public List<EventoTipoObjSTS> findTiposSts(Usuario usuario, Date dataIni, Date dataFim) {
+        return getDAO().findTiposSts(usuario, dataIni, dataFim);
+    }
+
+    public List<EventoEvolucaoObjSTS> findEvolucaoSts(Usuario usuario, Date dataIni, Date dataFim) {
+        return getDAO().findEvolucaoSts(usuario, dataIni, dataFim);
     }
 }

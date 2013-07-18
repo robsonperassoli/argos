@@ -19,10 +19,23 @@ import br.com.ezequieljuliano.argos.constant.Constantes;
 import br.com.ezequieljuliano.argos.domain.Entidade;
 import br.com.ezequieljuliano.argos.domain.Evento;
 import br.com.ezequieljuliano.argos.domain.EventoPesquisaFiltro;
+import br.com.ezequieljuliano.argos.domain.EventoTipo;
 import br.com.ezequieljuliano.argos.domain.Usuario;
 import br.com.ezequieljuliano.argos.domain.UsuarioPerfil;
 import br.com.ezequieljuliano.argos.domain.UsuarioTermoPesquisa;
+import br.com.ezequieljuliano.argos.statistics.EventoEvolucaoObjSTS;
+import br.com.ezequieljuliano.argos.statistics.EventoHostObjSTS;
+import br.com.ezequieljuliano.argos.statistics.EventoTipoObjSTS;
 import br.com.ezequieljuliano.argos.util.Data;
+import com.mongodb.AggregationOutput;
+import com.mongodb.BasicDBList;
+import com.mongodb.BasicDBObject;
+import com.mongodb.CommandResult;
+import com.mongodb.DBCollection;
+import com.mongodb.DBObject;
+import com.mongodb.DBRef;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
@@ -39,8 +52,10 @@ import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Filter;
 import org.apache.lucene.search.QueryWrapperFilter;
 import org.apache.lucene.search.TermQuery;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
@@ -58,6 +73,9 @@ public class EventoDAO extends GenericLuceneDAO<Evento, String> {
     
     @Autowired
     private EntidadeDAO entidadeDAO;
+    
+    @Autowired
+    private EventoTipoDAO eventoTipoDAO;
 
     public List<Evento> findUltimosEventos(Usuario usuario, Integer limit) {
         List<Entidade> entidades = entidadeDAO.findByUsuario(usuario);
@@ -206,5 +224,104 @@ public class EventoDAO extends GenericLuceneDAO<Evento, String> {
 
     public void setNumHitsResults(int numHitsResults) {
         this.numHitsResults = numHitsResults;
+    }
+
+    public List<EventoHostObjSTS> findHostsSts(Usuario usuario, Date dataIni, Date dataFim) {
+        BasicDBList idsEntidades = new BasicDBList();
+        idsEntidades.addAll(getIdsFromEntidadesArray(entidadeDAO.findByUsuario(usuario)));
+        
+        MongoOperations mo = getMongoOperations();
+        DBCollection colEvento = mo.getCollection(mo.getCollectionName(Evento.class));
+                
+        BasicDBList and = new BasicDBList();
+        and.add(new BasicDBObject("entidade.$id", new BasicDBObject("$in", idsEntidades)));
+        and.add(new BasicDBObject("ocorrenciaDtHr", new BasicDBObject("$gte", dataIni)));
+        and.add(new BasicDBObject("ocorrenciaDtHr", new BasicDBObject("$lte", dataFim)));
+        
+        DBObject match = new BasicDBObject("$match", new BasicDBObject("$and", and));
+        DBObject group = new BasicDBObject("$group", new BasicDBObject("_id", "$hostIp").append("quantidade", new BasicDBObject("$sum", 1)));
+        DBObject sort = new BasicDBObject("$sort", new BasicDBObject("quantidade", -1));
+        DBObject limit = new BasicDBObject("$limit", 10);
+        
+        Iterable<DBObject> results = colEvento.aggregate(match, group, sort, limit).results();
+        
+        List<EventoHostObjSTS> resultList = new ArrayList<EventoHostObjSTS>();
+        for (DBObject dBObject : results) {
+            Integer qtd = (Integer) dBObject.get("quantidade");
+            String host = (String) dBObject.get("_id");
+            resultList.add(new EventoHostObjSTS(host, qtd));
+        }
+        return resultList;
+    }
+
+    private List<ObjectId> getIdsFromEntidadesArray(List<Entidade> entidades) {
+        List<ObjectId> ids = new ArrayList<ObjectId>();
+        for (Entidade entidade : entidades) {
+            ids.add(new ObjectId(entidade.getId()));
+        }
+        return ids;
+    }
+
+    public List<EventoTipoObjSTS> findTiposSts(Usuario usuario, Date dataIni, Date dataFim) {
+        BasicDBList idsEntidades = new BasicDBList();
+        idsEntidades.addAll(getIdsFromEntidadesArray(entidadeDAO.findByUsuario(usuario)));
+        
+        MongoOperations mo = getMongoOperations();
+        DBCollection colEvento = mo.getCollection(mo.getCollectionName(Evento.class));
+                
+        BasicDBList and = new BasicDBList();
+        and.add(new BasicDBObject("entidade.$id", new BasicDBObject("$in", idsEntidades)));
+        and.add(new BasicDBObject("ocorrenciaDtHr", new BasicDBObject("$gte", dataIni)));
+        and.add(new BasicDBObject("ocorrenciaDtHr", new BasicDBObject("$lte", dataFim)));
+        
+        DBObject match = new BasicDBObject("$match", new BasicDBObject("$and", and));
+        DBObject group = new BasicDBObject("$group", new BasicDBObject("_id", "$eventoTipo").append("quantidade", new BasicDBObject("$sum", 1)));
+        
+        Iterable<DBObject> results = colEvento.aggregate(match, group).results();
+        
+        List<EventoTipoObjSTS> resultList = new ArrayList<EventoTipoObjSTS>();
+        for (DBObject dBObject : results) {
+            Integer qtd = (Integer) dBObject.get("quantidade");
+            DBRef eventoTipoId = (DBRef) dBObject.get("_id");
+            ObjectId id = (ObjectId) eventoTipoId.getId();
+            EventoTipo tipo = eventoTipoDAO.load(id.toString());
+            resultList.add(new EventoTipoObjSTS(tipo.getDescricao(), qtd));
+        }
+        return resultList;
+    }
+
+    public List<EventoEvolucaoObjSTS> findEvolucaoSts(Usuario usuario, Date dataIni, Date dataFim) {
+        BasicDBList idsEntidades = new BasicDBList();
+        idsEntidades.addAll(getIdsFromEntidadesArray(entidadeDAO.findByUsuario(usuario)));
+        
+        MongoOperations mo = getMongoOperations();
+        DBCollection colEvento = mo.getCollection(mo.getCollectionName(Evento.class));
+        
+        BasicDBList and = new BasicDBList();
+        and.add(new BasicDBObject("entidade.$id", new BasicDBObject("$in", idsEntidades)));
+        and.add(new BasicDBObject("ocorrenciaDtHr", new BasicDBObject("$gte", dataIni)));
+        and.add(new BasicDBObject("ocorrenciaDtHr", new BasicDBObject("$lte", dataFim)));
+        
+        DBObject match = new BasicDBObject("$match", new BasicDBObject("$and", and));
+        DBObject project = new BasicDBObject("$project", new BasicDBObject("dia", new BasicDBObject("$dayOfMonth", "$ocorrenciaDtHr"))
+                    .append("mes", new BasicDBObject("$month", "$ocorrenciaDtHr"))
+                    .append("ano", new BasicDBObject("$year", "$ocorrenciaDtHr"))
+                );
+        DBObject group = new BasicDBObject("$group", 
+                new BasicDBObject("_id", 
+                    new BasicDBObject("dia", "$dia").append("mes", "$mes").append("ano", "$ano")
+                ).append("quantidade", new BasicDBObject("$sum", 1)));
+        
+        Iterable<DBObject> results = colEvento.aggregate(match, project, group).results();
+        
+        List<EventoEvolucaoObjSTS> resultList = new ArrayList<EventoEvolucaoObjSTS>();
+        for (DBObject dBObject : results) {
+            Integer qtd = (Integer) dBObject.get("quantidade");
+            BasicDBObject id = (BasicDBObject) dBObject.get("_id");
+            String data = id.get("dia") + "/" + id.get("mes") + "/" + id.get("ano");
+            resultList.add(new EventoEvolucaoObjSTS(data, qtd));
+        }
+        Collections.sort(resultList);        
+        return resultList;
     }
 }

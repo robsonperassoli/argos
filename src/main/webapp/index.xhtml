@@ -25,11 +25,11 @@
 
             <br /> 
 
-            <p:panel rendered="#{!dashboardMB.isEmptyEventos()}" id="pnDashboard">
+            <p:panel id="pnDashboard">
 
                 <p:panel rendered="#{dashboardMB.dashboardTipoIsGraficoEvolucao()}" id="evolucao" header="Evolução Diária de Eventos (Logs)">  
                     <p:lineChart value="#{dashboardMB.linearEvolucao}" legendPosition="w"  
-                                 minY="0" maxY="#{dashboardMB.maxY}" style="height:330px" /> 
+                                 minY="0" style="height:330px" /> 
                 </p:panel> 
 
                 <p:panel rendered="#{dashboardMB.dashboardTipoIsListagemLogs()}" id="listagem" header="Últimos Eventos (Logs) Recebidos">  

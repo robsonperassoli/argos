@@ -52,53 +52,6 @@ public class EventoSTS {
         return list;
     }
 
-    public List<EventoTipoObjSTS> getProcessTipos() {
-        List<EventoTipoObjSTS> list = new ArrayList<EventoTipoObjSTS>();
-        for (Evento evento : this.eventos) {
-            String descTipo = evento.getEventoTipo().getDescricao();
-            EventoTipoObjSTS tipo = new EventoTipoObjSTS(descTipo);
-            if (list.contains(tipo)) {
-                tipo = list.get(list.indexOf(tipo));
-                tipo.incrementar();
-            } else {
-                list.add(tipo);
-            }
-        }
-        return list;
-    }
-
-    public List<EventoEvolucaoObjSTS> getProcessEvolucao() {
-        List<EventoEvolucaoObjSTS> list = new ArrayList<EventoEvolucaoObjSTS>();
-        for (Evento evento : this.eventos) {
-            String data = Data.dateToString(evento.getOcorrenciaDtHr());
-            EventoEvolucaoObjSTS evolucao = new EventoEvolucaoObjSTS(data);
-            if (list.contains(evolucao)) {
-                evolucao = list.get(list.indexOf(evolucao));
-                evolucao.incrementar();
-            } else {
-                list.add(evolucao);
-            }
-        }
-        return list;
-    }
-
-    public List<EventoHostObjSTS> getProcessHosts() {
-        List<EventoHostObjSTS> list = new ArrayList<EventoHostObjSTS>();
-        for (Evento evento : this.eventos) {
-            String descHost = evento.getHostIp();
-            EventoHostObjSTS host = new EventoHostObjSTS(descHost);
-            if (list.contains(host)) {
-                host = list.get(list.indexOf(host));
-                host.incrementar();
-            } else {
-                if (list.size() < sizeExib) {
-                    list.add(host);
-                }
-            }
-        }
-        return list;
-    }
-
     public List<EventoFonteObjSTS> getProcessFontes() {
         List<EventoFonteObjSTS> list = new ArrayList<EventoFonteObjSTS>();
         for (Evento evento : this.eventos) {

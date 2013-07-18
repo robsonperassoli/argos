@@ -23,11 +23,12 @@ import java.util.Objects;
  */
 public class EventoTipoObjSTS {
 
-    private String descricao;
-    private Integer quantidade = 1;
+    private final String descricao;
+    private final Integer quantidade;
 
-    public EventoTipoObjSTS(String descricao) {
+    public EventoTipoObjSTS(String descricao, Integer quantidade) {
         this.descricao = descricao;
+        this.quantidade = quantidade;
     }
 
     public String getDescricao() {
@@ -36,10 +37,6 @@ public class EventoTipoObjSTS {
 
     public Integer getQuantidade() {
         return quantidade;
-    }
-
-    public void incrementar() {
-        this.quantidade++;
     }
 
     @Override

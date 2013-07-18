@@ -179,4 +179,15 @@ public class Data {
             return null;
         }
     }
+    
+    public static Date stringToDate(String s) {
+        try {
+            TimeZone tz = TimeZone.getDefault();
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+            sdf.setTimeZone(tz);
+            return sdf.parse(s);
+        } catch (ParseException ex) {
+            return null;
+        }
+    }
 }

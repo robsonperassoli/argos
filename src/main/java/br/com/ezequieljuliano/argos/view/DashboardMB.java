@@ -17,6 +17,7 @@ package br.com.ezequieljuliano.argos.view;
 
 import br.com.ezequieljuliano.argos.business.EventoBC;
 import br.com.ezequieljuliano.argos.domain.DashboardTipo;
+import br.com.ezequieljuliano.argos.domain.Evento;
 import br.com.ezequieljuliano.argos.security.SessionAttributes;
 import br.com.ezequieljuliano.argos.statistics.EventoEvolucaoObjSTS;
 import br.com.ezequieljuliano.argos.statistics.EventoFonteObjSTS;
@@ -76,7 +77,7 @@ public class DashboardMB {
     }
 
     private void startDashboard() {
-        eventoSTS = new EventoSTS(eventoBC.findByUsuarioAndPeriodo(sessionAttributes.getUsuario(), dataIni, dataFim));
+        eventoSTS = new EventoSTS(new ArrayList<Evento>());
         createPieNiveis();
         createPieTipos();
         createPieHosts();
@@ -208,7 +209,7 @@ public class DashboardMB {
 
     private void createPieTipos() {
         pieTipos = new PieChartModel();
-        List<EventoTipoObjSTS> list = eventoSTS.getProcessTipos();
+        List<EventoTipoObjSTS> list = eventoBC.findTiposSts(sessionAttributes.getUsuario(), dataIni, dataFim);
         for (EventoTipoObjSTS obj : list) {
             pieTipos.set(obj.getDescricao(), obj.getQuantidade());
         }
@@ -216,7 +217,7 @@ public class DashboardMB {
 
     private void createPieHosts() {
         pieHosts = new PieChartModel();
-        List<EventoHostObjSTS> list = eventoSTS.getProcessHosts();
+        List<EventoHostObjSTS> list = eventoBC.findHostsSts(sessionAttributes.getUsuario(), dataIni, dataFim);
         for (EventoHostObjSTS obj : list) {
             pieHosts.set(obj.getHost(), obj.getQuantidade());
         }
@@ -242,7 +243,7 @@ public class DashboardMB {
         linearEvolucao = new CartesianChartModel();
         ChartSeries serie = new LineChartSeries(); 
         serie.setLabel("Logs");
-        List<EventoEvolucaoObjSTS> list = eventoSTS.getProcessEvolucao();
+        List<EventoEvolucaoObjSTS> list = eventoBC.findEvolucaoSts(sessionAttributes.getUsuario(), dataIni, dataFim);
         for (int i = list.size() - 1; i >= 0; i--) {
             serie.set(list.get(i).getData(), list.get(i).getQuantidade());
         }

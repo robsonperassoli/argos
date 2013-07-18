@@ -23,11 +23,12 @@ import java.util.Objects;
  */
 public class EventoHostObjSTS {
 
-    private String host;
-    private Integer quantidade = 1;
+    private final String host;
+    private final Integer quantidade;
 
-    public EventoHostObjSTS(String host) {
+    public EventoHostObjSTS(String host, Integer quantidade) {
         this.host = host;
+        this.quantidade = quantidade;
     }
 
     public String getHost() {
@@ -36,10 +37,6 @@ public class EventoHostObjSTS {
 
     public Integer getQuantidade() {
         return quantidade;
-    }
-
-    public void incrementar() {
-        this.quantidade++;
     }
 
     @Override
